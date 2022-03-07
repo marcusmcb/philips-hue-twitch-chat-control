@@ -86,6 +86,6 @@ Feel free to message me with any questions regrading the script, configs/setup, 
 
 #### The idea here...
 
-To create a simple Node script for you to run locally that adds Hue smart-lighting control functionally to your Twitch channel. 
+To create a simple Node script for you to run locally that adds Hue smart-lighting control functionally to your Twitch channel. Deployment to the web via Heroku or other hosted option is possible but would require a <a href="https://codeburst.io/enable-public-access-to-connected-devices-in-your-local-network-c15338da5a3">proxy</a> connection for your Bridge device.
 
 Marcus McBride, 2022.
