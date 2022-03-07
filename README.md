@@ -51,6 +51,8 @@ HUE_BRIDGE_ADDRESS='<your_hue_bridge_address_on_your_local_network>'
 
 HUE_AUTH_USER='<your_hue_bridge_authorized_user_name>'
 
+<hr>
+
 #### Node Dependencies:
 
 * axios
@@ -58,11 +60,15 @@ HUE_AUTH_USER='<your_hue_bridge_authorized_user_name>'
 * tmi.js
 * nodemon (optional)
 
+<hr>
+
 #### In use:
 
 After cloning the repo and adding the necessary .env to secure your credentials, run "npm install" to add the necessary dependencies, and then "nodemon index.js" to start the script.
 
 Make sure your Bridge and Hue lights are both powered on and connected properly (a quick test on the mobile app to check works).  Once they are, !lights (option) sent from your Twitch chat should trigger the settings change in your connected smart lights.  The user's message (command) will also display in the script's log.
+
+<hr>
 
 #### Testing:
 
@@ -70,12 +76,16 @@ To test the script, I ran it during several live streams from the same laptop ha
 
 I've tested the same script during live streams via Rasperry Pi 4 on my local network (SSH in to start/stop the script) and was suprised by the performance.  I assumed some latency between command and response from the Hue fixtures via the RPi but it was negligible.
 
+<hr>
+
 #### Questions:
 
 Feel free to message me with any questions regrading the script, configs/setup, or feature requests to expand the concept here.
 
+<hr>
 
+#### The idea here...
 
-
+To create a simple Node script for you to run locally that adds Hue smart-lighting control functionally to your Twitch channel. 
 
 Marcus McBride, 2022.
