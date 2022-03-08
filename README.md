@@ -41,15 +41,15 @@ You'll also need to find the address of your Bridge component on your local netw
 
 To connect the tmi.js client to your Twitch channel, you'll need to generate an <a href="https://twitchapps.com/tmi/">OAuth Token</a>.  Copy and paste this value into a <a href='https://www.npmjs.com/package/dotenv'>.env file</a> in this repo's root directory.  We'll use this to secure our environment variables for both our Twitch account and our Hue lights as follows:
 
-TWITCH_OAUTH_TOKEN='<your_oauth_token_value>'
+TWITCH_OAUTH_TOKEN='your_oauth_token_value'
 
-TWITCH_BOT_USERNAME='<the_name_of_the_bot_account>'
+TWITCH_BOT_USERNAME='the_name_of_the_bot_account'
 
-TWITCH_CHANNEL_NAME='<your_main_channel's_name>'
+TWITCH_CHANNEL_NAME='your_main_channel's_name'
 
-HUE_BRIDGE_ADDRESS='<your_hue_bridge_address_on_your_local_network>'
+HUE_BRIDGE_ADDRESS='your_hue_bridge_address_on_your_local_network'
 
-HUE_AUTH_USER='<your_hue_bridge_authorized_user_name>'
+HUE_AUTH_USER='your_hue_bridge_authorized_user_name'
 
 <hr>
 
