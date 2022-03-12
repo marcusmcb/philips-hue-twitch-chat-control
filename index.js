@@ -1,8 +1,6 @@
-const axios = require('axios')
 const tmi = require('tmi.js')
 const dotenv = require('dotenv')
 
-// import hue smart lighting functions
 const {
   setLightsToRandomColors,
   turnLightsOnOrOff,
@@ -14,7 +12,6 @@ let lastCommand
 let lastUser
 let commandCount = 0
 
-// secure twitch oauth token for tmi
 dotenv.config()
 
 // create tmi instance
@@ -42,11 +39,12 @@ client.on('message', (channel, tags, message, self) => {
 
   const args = message.slice(1).split(' ')
   const command = args.shift().toLowerCase()
+  const channelName = channel.slice(1).split('#')
 
   const runCommand = (command) => {
     switch (command) {
-      case 'flarby':
-        client.say(channel, 'WORKING')
+      case 'lights-test':
+        client.say(channel, `Your script is successfully connected to ${channelName}'s channel.`)
         break
 
       // commands for hue lights
@@ -115,7 +113,7 @@ client.on('message', (channel, tags, message, self) => {
 
   // master list of current commands in this script for our client connection to listen for
   // any commands added/updated above need to be added/updated here
-  const commandList = ['lights', 'flarby']
+  const commandList = ['lights', 'lights-test']
 
   // check if command is in list
   if (commandList.includes(command)) {

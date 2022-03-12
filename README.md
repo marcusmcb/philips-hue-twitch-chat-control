@@ -4,8 +4,8 @@ The index.js file is a simple Node script that you can use to integrate a !light
 
 ### Chat Commands
 
-<li>!flarby (to test tmi.js connection to Twitch chat)</li>
-<li>!colors (option)</li>
+<li>!lights-test (to test tmi.js connection to Twitch chat)</li>
+<li>!lights (option)</li>
 
 ### Options:
 
@@ -22,6 +22,11 @@ The index.js file is a simple Node script that you can use to integrate a !light
 <li>peach</li>
 
 <hr>
+
+### Changelog:
+
+* 03/12/2022 - added rate-limiting to prevent user/viewer command spamming
+* 03/12/2022 - added master command list covered by this script to prevent conflicts with any other bot accounts that may be listening to the Twitch stream
 
 ## What You'll Need:
 
