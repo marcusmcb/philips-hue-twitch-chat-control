@@ -70,6 +70,7 @@ const setLightsToColor = async (color) => {
   })
 }
 
+// requires more than one hue fixture for the effect to display properly
 const setLightsForChristmas = () => {
   turnLightOnOrOff(ids[0], true, 27306, 150, 175)
   turnLightOnOrOff(ids[1], true, 1, 150, 175)
