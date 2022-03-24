@@ -2,7 +2,8 @@ const axios = require('axios')
 
 const ids = [1]
 
-const turnLightOnOrOff = async (lightId, on, hue, sat, bri) => {
+const turnLightOnOrOff = async (lightId, on, hue, sat, bri, effect) => {
+  console.log("EFFECT: ", effect)
   try {
     return await axios.put(
       `http://${process.env.HUE_BRIDGE_ADDRESS}/api/${process.env.HUE_AUTH_USER}/lights/${lightId}/state`,
@@ -11,11 +12,40 @@ const turnLightOnOrOff = async (lightId, on, hue, sat, bri) => {
         ...(sat && { sat }),
         ...(bri && { bri }),
         ...(hue && { hue }),
+        ...(effect && { effect }),
       }
     )
   } catch (err) {
     console.error(err)
   }
+}
+
+const turnLightMorphOn = async (lightId, on, hue, sat, bri, effect) => {
+  try {
+    return await axios.put(
+      `http://${process.env.HUE_BRIDGE_ADDRESS}/api/${process.env.HUE_AUTH_USER}/lights/${lightId}/state`,
+      {
+        on,
+        ...(sat && { sat }),
+        ...(bri && { bri }),
+        ...(hue && { hue }),
+        ...(effect && { effect }),
+      }
+    )
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const setLightsToMorph = async () => {
+  ids.forEach((id) => {
+    const hue = Math.floor(Math.random() * 65535) + 1
+    console.log('HUE: ', hue)
+    const sat = 200
+    const bri = 200
+    const effect = 'colorloop'
+    turnLightMorphOn(id, true, hue, sat, bri, effect)
+  })
 }
 
 const turnLightsOnOrOff = async (on) => {
@@ -28,7 +58,8 @@ const setLightsToRandomColors = async () => {
     console.log('HUE: ', hue)
     const sat = 200
     const bri = 200
-    turnLightOnOrOff(id, true, hue, sat, bri)
+    const effect = 'none'
+    turnLightOnOrOff(id, true, hue, sat, bri, effect)
   })
 }
 
@@ -66,7 +97,8 @@ const setLightsToColor = async (color) => {
     const hue = hueValue
     const sat = 200
     const bri = 200
-    turnLightOnOrOff(id, true, hue, sat, bri)
+    const effect = 'none'
+    turnLightOnOrOff(id, true, hue, sat, bri, effect)
   })
 }
 
@@ -81,4 +113,5 @@ module.exports = {
   setLightsToRandomColors,
   turnLightsOnOrOff,
   setLightsToColor,
+  setLightsToMorph
 }
