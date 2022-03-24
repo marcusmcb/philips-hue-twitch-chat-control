@@ -71,7 +71,7 @@ client.on('message', (channel, tags, message, self) => {
           if (args == 'options') {
             client.say(
               channel,
-              'You can control my lighting with the following options --> on, off, random, green, blue, red, purple, pink, teal, gold, peach.'
+              'You can control my lighting with the following options --> on, off, random, green, blue, red, purple, pink, teal, gold, peach, morph.'
             )
             break
           }
@@ -98,7 +98,7 @@ client.on('message', (channel, tags, message, self) => {
           // if empty, display options & prompt user to try again
           client.say(
             channel,
-            'You can control my lighting with the following options --> on, off, random, green, blue, red, purple, pink, teal, gold, peach.'
+            'You can control my lighting with the following options --> on, off, random, green, blue, red, purple, pink, teal, gold, peach, morph.'
           )
           break
         }
