@@ -87,7 +87,7 @@ I've tested the same script during live streams via Rasperry Pi 4 on my local ne
 
 #### Questions:
 
-Feel free to message me with any questions regrading the script, configs/setup, or feature requests to expand the concept here.
+Feel free to message me with any questions regrading the script, configs/setup, etc.
 
 <hr>
 
