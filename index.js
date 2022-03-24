@@ -149,3 +149,5 @@ client.on('message', (channel, tags, message, self) => {
     return
   }
 })
+
+// reference postman collections for PUT requests to change light params
