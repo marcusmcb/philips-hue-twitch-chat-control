@@ -20,6 +20,7 @@ The index.js file is a simple Node script that you can use to integrate a !light
 <li>gold</li>
 <li>blue</li>
 <li>peach</li>
+<li>morph</li>
 
 <hr>
 
@@ -27,6 +28,7 @@ The index.js file is a simple Node script that you can use to integrate a !light
 
 * 03/12/2022 - added rate-limiting to prevent user/viewer command spamming
 * 03/12/2022 - added master command list covered by this script to prevent conflicts with any other bot accounts that may be listening to the Twitch stream
+* 03/23/2022 - added morph command to the list via the 'effect' param in the hue light's state (working - needs refactoring)
 
 ## What You'll Need:
 
