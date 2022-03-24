@@ -73,10 +73,12 @@ client.on('message', (channel, tags, message, self) => {
               channel,
               'You can control my lighting with the following options --> on, off, random, green, blue, red, purple, pink, teal, gold, peach.'
             )
+            break
           }
           // !lights morph
           if (args == 'morph') {
             setLightsToMorph()
+            break
           }
           // !lights (color)
           if (

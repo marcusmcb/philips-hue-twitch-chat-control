@@ -2,8 +2,9 @@ const axios = require('axios')
 
 const ids = [1]
 
-const turnLightOnOrOff = async (lightId, on, hue, sat, bri, effect) => {
+const turnLightOnOrOff = async (lightId, on, hue, sat, bri, effect) => {  
   console.log("EFFECT: ", effect)
+  console.log("HUE: ", hue)
   try {
     return await axios.put(
       `http://${process.env.HUE_BRIDGE_ADDRESS}/api/${process.env.HUE_AUTH_USER}/lights/${lightId}/state`,
@@ -21,6 +22,8 @@ const turnLightOnOrOff = async (lightId, on, hue, sat, bri, effect) => {
 }
 
 const turnLightMorphOn = async (lightId, on, hue, sat, bri, effect) => {
+  console.log("EFFECT: ", effect)
+  console.log("HUE: ", hue)
   try {
     return await axios.put(
       `http://${process.env.HUE_BRIDGE_ADDRESS}/api/${process.env.HUE_AUTH_USER}/lights/${lightId}/state`,
@@ -39,8 +42,7 @@ const turnLightMorphOn = async (lightId, on, hue, sat, bri, effect) => {
 
 const setLightsToMorph = async () => {
   ids.forEach((id) => {
-    const hue = Math.floor(Math.random() * 65535) + 1
-    console.log('HUE: ', hue)
+    const hue = Math.floor(Math.random() * 65535) + 1    
     const sat = 200
     const bri = 200
     const effect = 'colorloop'
@@ -54,8 +56,7 @@ const turnLightsOnOrOff = async (on) => {
 
 const setLightsToRandomColors = async () => {
   ids.forEach((id) => {
-    const hue = Math.floor(Math.random() * 65535) + 1
-    console.log('HUE: ', hue)
+    const hue = Math.floor(Math.random() * 65535) + 1    
     const sat = 200
     const bri = 200
     const effect = 'none'
@@ -65,9 +66,8 @@ const setLightsToRandomColors = async () => {
 
 const setLightsToColor = async (color) => {
   let hueValue
-  console.log('COLOR: ', color[0])
-  // philips hue values for color command options
-  // NOTE: use the console.log in the !random command to find values for color options
+  // console.log('COLOR: ', color[0])
+  // philips hue values for color command options  
   if (color == 'teal') {
     hueValue = 31421
   }
