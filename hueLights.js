@@ -76,9 +76,7 @@ const setLightsToRandomColors = () => {
 }
 
 const setLightsToColor = (color) => {
-	let hueValue
-	// console.log('COLOR: ', color[0])
-	// philips hue values for color command options
+	let hueValue	
 	if (color == 'teal') {
 		hueValue = 31421
 	}
@@ -121,11 +119,11 @@ const setLightsForChristmas = () => {
 }
 
 const simulateCandle = async (lightId) => {
-	lightEffectControl[lightId] = true // Enable the effect loop
+	lightEffectControl[lightId] = true 
 	const flicker = async () => {
-		if (!lightEffectControl[lightId]) return // Exit if control is disabled
-		const bri = Math.floor(Math.random() * 20) + 200 // Brightness between 200 and 220
-		const ct = Math.floor(Math.random() * 80) + 440 // Color temperature between 440 and 520
+		if (!lightEffectControl[lightId]) return 
+		const bri = Math.floor(Math.random() * 20) + 200 
+		const ct = Math.floor(Math.random() * 80) + 440 
 		try {
 			await axios.put(
 				`http://${process.env.HUE_BRIDGE_ADDRESS}/api/${process.env.HUE_AUTH_USER}/lights/${lightId}/state`,
@@ -146,9 +144,9 @@ const setLightsToCandleEffect = () => {
 const simulateFireplace = async (lightId) => {
 	lightEffectControl[lightId] = true
 	const flicker = async () => {
-		if (!lightEffectControl[lightId]) return // Stop if control is disabled
-		const bri = Math.floor(Math.random() * 64) + 160 // Brightness between 160 and 224
-		const ct = Math.floor(Math.random() * 120) + 400 // Color temperature between 400 and 520
+		if (!lightEffectControl[lightId]) return 
+		const bri = Math.floor(Math.random() * 64) + 160 
+		const ct = Math.floor(Math.random() * 120) + 400 
 		try {
 			await axios.put(
 				`http://${process.env.HUE_BRIDGE_ADDRESS}/api/${process.env.HUE_AUTH_USER}/lights/${lightId}/state`,
@@ -167,9 +165,9 @@ const setLightsToFireplaceEffect = () => {
 }
 
 const simulateTrafficLight = async (lightId) => {
-	lightEffectControl[lightId] = true // Enable the effect loop
+	lightEffectControl[lightId] = true 
 	const changeColor = async (hue, duration) => {
-		if (!lightEffectControl[lightId]) return // Exit if control is disabled
+		if (!lightEffectControl[lightId]) return 
 		try {
 			await axios.put(
 				`http://${process.env.HUE_BRIDGE_ADDRESS}/api/${process.env.HUE_AUTH_USER}/lights/${lightId}/state`,
@@ -182,11 +180,11 @@ const simulateTrafficLight = async (lightId) => {
 	}
 
 	const cycleColors = async () => {
-		if (!lightEffectControl[lightId]) return // Exit if control is disabled
-		await changeColor(25500, 5000) // Green for 4 seconds
-		await changeColor(12750, 2000) // Yellow for 1 second
-		await changeColor(0, 5000) // Red for 4 seconds
-		cycleColors() // Repeat the cycle
+		if (!lightEffectControl[lightId]) return 
+		await changeColor(25500, 5000) 
+		await changeColor(12750, 2000) 
+		await changeColor(0, 5000) 
+		cycleColors() 
 	}
 
 	cycleColors()
