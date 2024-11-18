@@ -60,15 +60,8 @@ client.on('message', async (channel, tags, message, self) => {
 	const runCommand = async (command, args) => {
 		switch (command) {
 			case 'candle':
-				await setLightsToCandleEffect()
-				client.say(channel, 'Candle effect activated.')
+				await setLightsToCandleEffect()				
 				break
-
-			case 'traffic':
-				await setLightsToTrafficLightEffect() // Requires a similar cloud API update
-				client.say(channel, 'Traffic light effect activated.')
-				break
-
 			case 'lights':
 				if (args[0] === 'random') {
 					await setLightsToRandomColors()
