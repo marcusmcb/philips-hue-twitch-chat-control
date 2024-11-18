@@ -59,15 +59,6 @@ client.on('message', async (channel, tags, message, self) => {
 
 	const runCommand = async (command, args) => {
 		switch (command) {
-			case 'lights-test':
-				client.say(channel, `Lights script is connected.`)
-				break
-
-			case 'fireplace':
-				await setLightsToFireplaceEffect() // Requires a similar cloud API update in hueLights.js
-				client.say(channel, 'Fireplace effect activated.')
-				break
-
 			case 'candle':
 				await setLightsToCandleEffect()
 				client.say(channel, 'Candle effect activated.')
@@ -79,63 +70,30 @@ client.on('message', async (channel, tags, message, self) => {
 				break
 
 			case 'lights':
-				if (args[0] === 'on') {
-					await turnLightsOnOrOff(true)
-					client.say(channel, 'Lights turned on.')
-				} else if (args[0] === 'off') {
-					await turnLightsOnOrOff(false)
-					client.say(channel, 'Lights turned off.')
-				} else if (args[0] === 'random') {
+				if (args[0] === 'random') {
 					await setLightsToRandomColors()
-					client.say(channel, 'Lights set to a random color.')
+				} else if (args[0] === 'test') {
+					client.say(channel, 'Your light script is connected.')
 				} else if (args[0] === 'morph') {
 					await setLightsToMorph()
-					client.say(channel, 'Lights set to morphing colors.')
 				} else if (args[0] === 'options') {
 					client.say(
 						channel,
-						'You can choose from these available lighting colors: teal, pink, green, purple, red, gold, blue, peach'
+						'You can choose from these available lighting colors: teal, pink, green, purple, red, gold, blue, peach, morph'
 					)
 				} else {
 					await setLightsToColor(args[0])
-					client.say(channel, `Lights set to ${args[0]}.`)
 				}
 				break
-
 			default:
 				client.say(channel, `Unknown command: ${command}`)
 				break
 		}
 	}
 
-	// const runCommand = async (command) => {
-	// 	switch (command) {
-	// 		case 'lights-test':
-	// 			client.say(channel, `Lights script is connected.`)
-	// 			break
-	// 		case 'fireplace':
-	// 			setLightsToFireplaceEffect()
-	// 			break
-	// 		case 'candle':
-	// 			setLightsToCandleEffect()
-	// 			break
-	// 		case 'traffic':
-	// 			setLightsToTrafficLightEffect()
-	// 			break
-	// 		case 'lights':
-	// 			if (args[0] === 'on') turnLightsOnOrOff(true)
-	// 			else if (args[0] === 'off') turnLightsOnOrOff(false)
-	// 			else if (args[0] === 'random') setLightsToRandomColors()
-	// 			else setLightsToColor(args[0])
-	// 			break
-	// 		default:
-	// 			break
-	// 	}
-	// }
-
 	if (lastCommand === command && lastUser === tags.username) {
 		commandCount++
-		if (commandCount > 5) return
+		if (commandCount > 15) return
 	} else {
 		lastCommand = command
 		lastUser = tags.username
@@ -145,7 +103,7 @@ client.on('message', async (channel, tags, message, self) => {
 	runCommand(command, args)
 })
 
-// Express endpoint to handle Philips Hue authorization callback
+// endpoint to handle Philips Hue authorization callback
 app.get('/auth/callback', async (req, res) => {
 	const authCode = req.query.code
 
