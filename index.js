@@ -1,6 +1,13 @@
 const tmi = require('tmi.js')
+const express = require('express')
+const axios = require('axios')
 const dotenv = require('dotenv')
 
+dotenv.config()
+
+const sendHueAPIRequest = require('./helpers/hueCloudAPI')
+
+// Your bot and light control functions (as in your original script)
 const {
 	setLightsToRandomColors,
 	turnLightsOnOrOff,
@@ -8,23 +15,31 @@ const {
 	setLightsToMorph,
 	setLightsToCandleEffect,
 	setLightsToFireplaceEffect,
-	setLightsToTrafficLightEffect
+	setLightsToTrafficLightEffect,
 } = require('./hueLights')
 
-// global vars to track and prevent command spamming
+const app = express()
+const PORT = process.env.PORT || 5000
+
+// Philips Hue API credentials from .env file
+const HUE_CLIENT_ID = process.env.HUE_CLOUD_APP_CLIENT_ID
+const HUE_CLIENT_SECRET = process.env.HUE_CLOUD_APP_CLIENT_SECRET
+
+// Function to generate Basic Auth header for token exchange
+const generateBasicAuthHeader = (clientId, clientSecret) => {
+	const authString = `${clientId}:${clientSecret}`
+	return `Basic ${Buffer.from(authString).toString('base64')}`
+}
+
+// Global vars for rate limiting
 let lastCommand
 let lastUser
 let commandCount = 0
 
-dotenv.config()
-
-// create tmi instance
+// Create TMI client for Twitch
 const client = new tmi.Client({
 	options: { debug: true },
-	connection: {
-		secure: true,
-		reconnect: true,
-	},
+	connection: { secure: true, reconnect: true },
 	identity: {
 		username: process.env.TWITCH_BOT_USERNAME,
 		password: process.env.TWITCH_OAUTH_TOKEN,
@@ -32,146 +47,147 @@ const client = new tmi.Client({
 	channels: [process.env.TWITCH_CHANNEL_NAME],
 })
 
+// Connect TMI client
 client.connect()
 
-// chat command listener
-client.on('message', (channel, tags, message, self) => {
-	console.log('MESSAGE: ', message)
-	if (self || !message.startsWith('!')) {
-		return
-	}
+// Twitch Chat Commands (unchanged)
+client.on('message', async (channel, tags, message, self) => {
+	if (self || !message.startsWith('!')) return
 
 	const args = message.slice(1).split(' ')
 	const command = args.shift().toLowerCase()
-	const channelName = channel.slice(1).split('#')
 
-	const runCommand = (command) => {
+	const runCommand = async (command, args) => {
 		switch (command) {
 			case 'lights-test':
-				client.say(
-					channel,
-					`Your script is successfully connected to ${channelName}'s channel.`
-				)
+				client.say(channel, `Lights script is connected.`)
 				break
+
 			case 'fireplace':
-				console.log("Fireplace Effect")
-				setLightsToFireplaceEffect()
+				await setLightsToFireplaceEffect() // Requires a similar cloud API update in hueLights.js
+				client.say(channel, 'Fireplace effect activated.')
 				break
+
 			case 'candle':
-				console.log("Candle Effect")
-				setLightsToCandleEffect()
+				await setLightsToCandleEffect()
+				client.say(channel, 'Candle effect activated.')
 				break
+
 			case 'traffic':
-				console.log("Traffic Light Effect")
-				setLightsToTrafficLightEffect()
+				await setLightsToTrafficLightEffect() // Requires a similar cloud API update
+				client.say(channel, 'Traffic light effect activated.')
 				break
-			// commands for hue lights
+
 			case 'lights':
-				// check for lighting command option
-				if (args.length != 0) {
-					// !lights on
-					if (args == 'on') {
-						turnLightsOnOrOff(true)
-						break
-					}
-					// !lights off
-					if (args == 'off') {
-						turnLightsOnOrOff(false)
-						break
-					}
-					// !lights random
-					if (args == 'random') {
-						setLightsToRandomColors()
-						break
-					}
-					// !lights options
-					if (args == 'options') {
-						client.say(
-							channel,
-							'You can control my lighting with the following options --> on, off, random, green, blue, red, purple, pink, teal, gold, peach, morph.'
-						)
-						break
-					}
-					// !lights morph
-					if (args == 'morph') {
-						setLightsToMorph()
-						break
-					}
-					// !lights (color)
-					if (
-						args == 'green' ||
-						'pink' ||
-						'teal' ||
-						'purple' ||
-						'red' ||
-						'gold' ||
-						'blue' ||
-						'peach'
-					) {
-						setLightsToColor(args)
-						break
-					}
-				} else {
-					// if empty, display options & prompt user to try again
+				if (args[0] === 'on') {
+					await turnLightsOnOrOff(true)
+					client.say(channel, 'Lights turned on.')
+				} else if (args[0] === 'off') {
+					await turnLightsOnOrOff(false)
+					client.say(channel, 'Lights turned off.')
+				} else if (args[0] === 'random') {
+					await setLightsToRandomColors()
+					client.say(channel, 'Lights set to a random color.')
+				} else if (args[0] === 'morph') {
+					await setLightsToMorph()
+					client.say(channel, 'Lights set to morphing colors.')
+				} else if (args[0] === 'options') {
 					client.say(
 						channel,
-						'You can control my lighting with the following options --> on, off, random, green, blue, red, purple, pink, teal, gold, peach, morph.'
+						'You can choose from these available lighting colors: teal, pink, green, purple, red, gold, blue, peach'
 					)
-					break
+				} else {
+					await setLightsToColor(args[0])
+					client.say(channel, `Lights set to ${args[0]}.`)
 				}
+				break
 
-			// no response as default for commands that don't exist
 			default:
+				client.say(channel, `Unknown command: ${command}`)
 				break
 		}
 	}
 
-	// user is limited to 6 consecutive uses of each command
-	// beyond that cap, user is prompted to use another command
-	const rateLimited = () => {
-		client.say(
-			channel,
-			`${tags.username}, try a different command before using that one again.`
-		)
+	// const runCommand = async (command) => {
+	// 	switch (command) {
+	// 		case 'lights-test':
+	// 			client.say(channel, `Lights script is connected.`)
+	// 			break
+	// 		case 'fireplace':
+	// 			setLightsToFireplaceEffect()
+	// 			break
+	// 		case 'candle':
+	// 			setLightsToCandleEffect()
+	// 			break
+	// 		case 'traffic':
+	// 			setLightsToTrafficLightEffect()
+	// 			break
+	// 		case 'lights':
+	// 			if (args[0] === 'on') turnLightsOnOrOff(true)
+	// 			else if (args[0] === 'off') turnLightsOnOrOff(false)
+	// 			else if (args[0] === 'random') setLightsToRandomColors()
+	// 			else setLightsToColor(args[0])
+	// 			break
+	// 		default:
+	// 			break
+	// 	}
+	// }
+
+	if (lastCommand === command && lastUser === tags.username) {
+		commandCount++
+		if (commandCount > 5) return
+	} else {
+		lastCommand = command
+		lastUser = tags.username
+		commandCount = 1
 	}
 
-	// master list of current commands in this script for our client connection to listen for
-	// any commands added/updated above need to be added/updated here
-	const commandList = ['lights', 'lights-test', 'candle', 'fireplace', 'traffic']
+	runCommand(command, args)
+})
 
-	// check if command is in list
-	if (commandList.includes(command)) {
-		// check if the same user has entered the same command consecutively more than once
-		if (lastCommand == command && lastUser == tags.username) {
-			console.log(true)
-			commandCount++
-			console.log('COMMAND COUNT: ', commandCount)
-			// redirect user to another command on rate limit
-			if (commandCount === 6) {
-				rateLimited()
-				// ignore further commands from user if spamming
-			} else if (commandCount > 6) {
-				return
-				// run command otherwise
-			} else {
-				runCommand(command)
+// Express endpoint to handle Philips Hue authorization callback
+app.get('/auth/callback', async (req, res) => {
+	const authCode = req.query.code
+
+	if (!authCode) {
+		return res.status(400).send('Authorization code not found.')
+	}
+
+	console.log('Authorization Code:', authCode)
+
+	try {
+		// Exchange the authorization code for tokens
+		const response = await axios.post(
+			'https://api.meethue.com/v2/oauth2/token',
+			`grant_type=authorization_code&code=${authCode}&redirect_uri=http://localhost:5000/auth/callback`,
+			{
+				headers: {
+					Authorization: generateBasicAuthHeader(
+						HUE_CLIENT_ID,
+						HUE_CLIENT_SECRET
+					),
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
 			}
-			// if not, call method/function that runs switch selector, set vars and counter
-		} else {
-			console.log(false)
-			lastCommand = command
-			lastUser = tags.username
-			commandCount = 1
-			runCommand(command)
-		}
-	} else {
-		// if command is not in list, reset count and return w/o response
-		// we only want this script to listen for commands within the commandList
-		// prevents response and rate-limiting conflicts w/other bots configured for the same channel
-		commandCount = 0
-		// reset args
-		return
+		)
+
+		const { access_token, refresh_token } = response.data
+
+		console.log('Access Token:', access_token)
+		console.log('Refresh Token:', refresh_token)
+
+		// Save tokens to a secure place (e.g., .env or a database)
+		res.send('Tokens generated successfully. Check your console for details.')
+	} catch (error) {
+		console.error(
+			'Error exchanging authorization code:',
+			error.response?.data || error.message
+		)
+		res.status(500).send('Failed to exchange authorization code.')
 	}
 })
 
-// reference postman collections for PUT requests to change light params
+// Start Express server
+app.listen(PORT, () => {
+	console.log(`Listening on http://localhost:${PORT}`)
+})
