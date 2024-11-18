@@ -60,7 +60,7 @@ client.on('message', async (channel, tags, message, self) => {
 	const runCommand = async (command, args) => {
 		switch (command) {
 			case 'candle':
-				await setLightsToCandleEffect()				
+				await setLightsToCandleEffect()
 				break
 			case 'lights':
 				if (args[0] === 'random') {
@@ -72,14 +72,17 @@ client.on('message', async (channel, tags, message, self) => {
 				} else if (args[0] === 'options') {
 					client.say(
 						channel,
-						'You can choose from these available lighting colors: teal, pink, green, purple, red, gold, blue, peach, morph'
+						'You can choose from these lighting colors & FX: teal, pink, green, purple, red, gold, blue, peach, morph, random'
 					)
 				} else {
 					await setLightsToColor(args[0])
 				}
 				break
 			default:
-				client.say(channel, `Unknown command: ${command}`)
+				console.log(
+					'This light script does not recognize this command: ',
+					command
+				)
 				break
 		}
 	}

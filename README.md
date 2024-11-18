@@ -9,8 +9,6 @@ The index.js file is a simple Node script that you can use to integrate a !light
 
 ### Options:
 
-<li>on</li>
-<li>off</li>
 <li>random</li>
 <li>green</li>
 <li>pink</li>
