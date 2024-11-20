@@ -96,13 +96,18 @@ client.on('message', async (channel, tags, message, self) => {
 })
 
 const verifySignature = (req, secret) => {
+	// Assemble the message to hash
 	const message = `${req.header('Twitch-Eventsub-Message-Id')}${req.header(
 		'Twitch-Eventsub-Message-Timestamp'
-	)}${JSON.stringify(req.body)}`
+	)}${req.rawBody}` // Use rawBody for the raw payload
+
+	// Create the HMAC
 	const signature = crypto
 		.createHmac('sha256', secret)
 		.update(message)
 		.digest('hex')
+
+	// Return the computed signature in Twitch's format
 	return `sha256=${signature}`
 }
 
@@ -295,8 +300,14 @@ const getNgrokURL = async () => {
 	}
 })()
 
-// EventSub webhook endpoint
-// EventSub webhook endpoint
+app.use(
+	express.json({
+		verify: (req, res, buf) => {
+			req.rawBody = buf.toString() // Store raw body for verification
+		},
+	})
+)
+
 app.post('/webhook', express.json(), async (req, res) => {
 	const secret = process.env.TWITCH_EVENTSUB_SECRET
 
@@ -304,35 +315,52 @@ app.post('/webhook', express.json(), async (req, res) => {
 	const expectedSignature = verifySignature(req, secret)
 	const actualSignature = req.header('Twitch-Eventsub-Message-Signature')
 
-	if (expectedSignature !== actualSignature) {
-		console.log('Invalid signature')
-		return res.status(403).send('Forbidden') // Respond with 403 if verification fails
+	if (
+		!crypto.timingSafeEqual(
+			Buffer.from(expectedSignature),
+			Buffer.from(actualSignature)
+		)
+	) {
+		console.error('Invalid signature')
+		return res.status(403).send('Forbidden')
 	} else {
 		console.log('Valid signature')
 	}
 
-	// Identify the type of message
+	// Process the message type
 	const messageType = req.header('Twitch-Eventsub-Message-Type')
 	console.log('Message Type:', messageType)
 
 	if (messageType === 'webhook_callback_verification') {
 		console.log('Handling verification request')
-
-		// Respond with the challenge string
-		res.status(200).send(req.body.challenge)
+		console.log('--------------------------')
+		console.log('REQ: ', req.body)
+		console.log('--------------------------')
+		res
+			.set('Content-Type', 'text/plain')
+			.status(200)
+			.send({ body: req.body.challenge }) // Plain text response
 		console.log('Verification challenge sent')
-		return // Ensure no further processing occurs
+		return // Ensure no further processing
 	} else if (messageType === 'notification') {
 		console.log('Handling notification')
-		const event = req.body.event
+		const notification = req.body
 
-		// Log the event and handle redemption logic
-		if (event.type === 'channel.channel_points_custom_reward_redemption.add') {
+		// Log the event for debugging
+		console.log(`Event type: ${notification.subscription.type}`)
+		console.log('Event data:', JSON.stringify(notification.event, null, 4))
+
+		if (
+			notification.subscription.type ===
+			'channel.channel_points_custom_reward_redemption.add'
+		) {
+			const event = notification.event
+
 			console.log(`Redemption received: ${event.reward.title}`)
 			console.log(`User: ${event.user_name}`)
 			console.log(`Input: ${event.user_input || 'None'}`)
 
-			// Example: Trigger a light effect based on the reward title
+			// Trigger light effects based on the reward
 			if (event.reward.title === 'Candle Effect') {
 				await setLightsToCandleEffect()
 			} else if (event.reward.title === 'Morph Lights') {
@@ -347,11 +375,10 @@ app.post('/webhook', express.json(), async (req, res) => {
 			}
 		}
 
-		// Acknowledge receipt of the event
-		res.status(200).end()
+		res.status(204).end() // Acknowledge receipt of the event
 		return
 	} else {
-		console.log(`Unknown message type: ${messageType}`)
+		console.error(`Unknown message type: ${messageType}`)
 		res.status(400).send('Unknown message type')
 		return
 	}
