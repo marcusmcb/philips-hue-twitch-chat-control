@@ -1,5 +1,6 @@
 const axios = require('axios')
 
+// helper method to refresh Hue cloud API access token
 const refreshHueToken = async () => {
 	console.log('ACCESS TOKEN? ', process.env.HUE_ACCESS_TOKEN)
 	try {
@@ -18,11 +19,9 @@ const refreshHueToken = async () => {
 		)
 
 		const { access_token, refresh_token } = response.data
-
-		// Update the .env or store tokens securely
+		// update the .env if necessary or store tokens securely
 		process.env.HUE_ACCESS_TOKEN = access_token
 		process.env.HUE_REFRESH_TOKEN = refresh_token
-
 		console.log('Token refreshed successfully')
 	} catch (error) {
 		console.error(
@@ -49,7 +48,7 @@ const sendHueAPIRequest = async (endpoint, method = 'GET', data = null) => {
 		if (error.response?.status === 401) {
 			console.log('Access token expired, refreshing...')
 			await refreshHueToken()
-			return sendHueAPIRequest(endpoint, method, data) // Retry with refreshed token
+			return sendHueAPIRequest(endpoint, method, data) // retry with refreshed token
 		}
 		console.error(
 			'Error sending Hue API request:',
