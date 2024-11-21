@@ -23,6 +23,9 @@ const PORT = process.env.PORT || 5000
 
 const HUE_CLIENT_ID = process.env.HUE_CLOUD_APP_CLIENT_ID
 const HUE_CLIENT_SECRET = process.env.HUE_CLOUD_APP_CLIENT_SECRET
+const HEROKU_URL = process.env.HEROKU_URL
+
+const isDev = process.env.NODE_ENV !== 'production';
 
 // // global vars for rate limiting
 // let lastCommand
@@ -116,17 +119,16 @@ const getAppAccessToken = async () => {
 	}
 }
 
-
-
 ;(async () => {
 	try {
-		// fetch the current ngrok URL for testing purposes
-		const ngrokURL = await getNgrokURL()
-		console.log(`Using ngrok URL: ${ngrokURL}`)
-		// obtain a valid app-level access token
+		const callbackURL = isDev
+			? `${await getNgrokURL()}/webhook` // Dev URL
+			: `${HEROKU_URL}/webhook` // Prod URL
+
+		console.log(`Using callback URL: ${callbackURL}`)
+
 		const appAccessToken = await getAppAccessToken()
-		// use the access token to create a new EventSub subscription
-		await createEventSubSubscription(`${ngrokURL}/webhook`, appAccessToken)
+		await createEventSubSubscription(callbackURL, appAccessToken)
 	} catch (error) {
 		console.error('Error setting up EventSub subscription:', error.message)
 	}
@@ -140,14 +142,14 @@ app.use(
 	})
 )
 
-// webhook handler for channel point redemption events and 
+// webhook handler for channel point redemption events and
 // channel eventsub subscription verification
 app.post('/webhook', async (req, res) => {
 	console.log('Raw Body:', req.rawBody.toString())
 	console.log('-----------------')
 
 	// verify the signature of the incoming notification
-	const secret = process.env.TWITCH_EVENTSUB_SECRET	
+	const secret = process.env.TWITCH_EVENTSUB_SECRET
 	const expectedSignature = verifySignature(req, secret)
 	const actualSignature = req.header('Twitch-Eventsub-Message-Signature')
 
@@ -166,7 +168,7 @@ app.post('/webhook', async (req, res) => {
 	// process the message type
 	const messageType = req.header('Twitch-Eventsub-Message-Type')
 	console.log('Message Type:', messageType)
-	
+
 	if (messageType === 'webhook_callback_verification') {
 		try {
 			const challenge = req.body.challenge
@@ -240,10 +242,7 @@ app.get('/auth/callback', async (req, res) => {
 			`grant_type=authorization_code&code=${authCode}&redirect_uri=http://localhost:5000/auth/callback`,
 			{
 				headers: {
-					Authorization: generateAuthHeader(
-						HUE_CLIENT_ID,
-						HUE_CLIENT_SECRET
-					),
+					Authorization: generateAuthHeader(HUE_CLIENT_ID, HUE_CLIENT_SECRET),
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
 			}
@@ -251,7 +250,7 @@ app.get('/auth/callback', async (req, res) => {
 		const { access_token, refresh_token } = response.data
 		console.log('Access Token:', access_token)
 		console.log('Refresh Token:', refresh_token)
-		// store the token values in the local .env file 
+		// store the token values in the local .env file
 		// or as environment vars in your hosted environment
 		res.send('Tokens generated successfully. Check your console for details.')
 	} catch (error) {
