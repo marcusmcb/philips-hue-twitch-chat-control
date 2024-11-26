@@ -22,6 +22,7 @@ const refreshTwitchToken = async () => {
 		console.log('Refresh Token:', refresh_token)
 		return access_token
 	} catch (error) {
+		console.log('*** TWITCH REFRESH ERROR ***')
 		console.error(
 			'Error refreshing token:',
 			error.response?.data || error.message

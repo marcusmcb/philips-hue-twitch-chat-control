@@ -1,15 +1,19 @@
 const axios = require('axios')
+const generateAuthHeader = require('../auth/generateAuthHeader')
+
+const HUE_CLIENT_ID = process.env.HUE_CLOUD_APP_CLIENT_ID
+const HUE_CLIENT_SECRET = process.env.HUE_CLOUD_APP_CLIENT_SECRET
 
 // helper method to refresh Hue cloud API access token
 const refreshHueToken = async () => {
-	console.log('ACCESS TOKEN? ', process.env.HUE_ACCESS_TOKEN)
+	console.log("Hue Refresh Token: ", process.env.HUE_REFRESH_TOKEN)
 	try {
 		const response = await axios.post(
 			'https://api.meethue.com/v2/oauth2/token',
 			`grant_type=refresh_token&refresh_token=${process.env.HUE_REFRESH_TOKEN}`,
 			{
 				headers: {
-					Authorization: generateBasicAuthHeader(
+					Authorization: generateAuthHeader(
 						HUE_CLIENT_ID,
 						HUE_CLIENT_SECRET
 					),
@@ -24,6 +28,7 @@ const refreshHueToken = async () => {
 		process.env.HUE_REFRESH_TOKEN = refresh_token
 		console.log('Token refreshed successfully')
 	} catch (error) {
+		console.log("*** HUE REFRESH ERROR ***")
 		console.error(
 			'Error refreshing token:',
 			error.response?.data || error.message
@@ -46,6 +51,7 @@ const sendHueAPIRequest = async (endpoint, method = 'GET', data = null) => {
 		return response.data
 	} catch (error) {
 		if (error.response?.status === 401) {
+			console.log('*** HUE ERROR ***')
 			console.log('Access token expired, refreshing...')
 			await refreshHueToken()
 			return sendHueAPIRequest(endpoint, method, data) // retry with refreshed token
