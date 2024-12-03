@@ -17,6 +17,8 @@ const getNgrokURL = require('./helpers/getNgrokURL')
 const verifySignature = require('./helpers/verifySignature')
 const generateAuthHeader = require('./auth/generateAuthHeader')
 const createEventSubSubscription = require('./helpers/eventSubHandlers')
+const refreshHueToken = require('./helpers/hueCloudAPI')
+const HUE_CALLBACK_URL = 'http://localhost:5000/auth/callback'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -25,7 +27,7 @@ const HUE_CLIENT_ID = process.env.HUE_CLOUD_APP_CLIENT_ID
 const HUE_CLIENT_SECRET = process.env.HUE_CLOUD_APP_CLIENT_SECRET
 const HEROKU_URL = process.env.HEROKU_URL
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.NODE_ENV !== 'production'
 
 // // global vars for rate limiting
 // let lastCommand
@@ -129,6 +131,7 @@ const getAppAccessToken = async () => {
 
 		const appAccessToken = await getAppAccessToken()
 		await createEventSubSubscription(callbackURL, appAccessToken)
+		// await refreshHueToken()
 	} catch (error) {
 		console.error('Error setting up EventSub subscription:', error.message)
 	}
@@ -226,6 +229,17 @@ app.post('/webhook', async (req, res) => {
 		console.error(`Unknown message type: ${messageType}`)
 		res.status(400).send('Unknown message type')
 	}
+})
+
+app.get('/hue/authorize', (req, res) => {
+	const hueAuthURL = `https://api.meethue.com/v2/oauth2/authorize?client_id=${HUE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
+		HUE_CALLBACK_URL
+	)}`
+
+	console.log('Redirecting to Hue authorization URL:', hueAuthURL)
+
+	// Redirect user to Hue authorization URL
+	res.redirect(hueAuthURL)
 })
 
 // endpoint to handle Philips Hue authorization callback
