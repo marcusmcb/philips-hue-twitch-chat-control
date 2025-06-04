@@ -148,7 +148,6 @@ app.use(
 // webhook handler for channel point redemption events and
 // channel eventsub subscription verification
 app.post('/webhook', async (req, res) => {
-	console.log('Received webhook notification')
 	console.log('Raw Body:', req.rawBody.toString())
 	console.log('-----------------')
 
