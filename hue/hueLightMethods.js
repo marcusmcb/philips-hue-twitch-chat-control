@@ -49,7 +49,7 @@ const setLightsToMorph = () => {
 	ids.forEach((id) => {
 		const hue = Math.floor(Math.random() * 65535) + 1
 		const sat = 200
-		const bri = 200
+		const bri = 100
 		const effect = 'colorloop'
 		turnLightMorphOn(id, true, hue, sat, bri, effect)
 	})
@@ -63,7 +63,7 @@ const setLightsToRandomColors = () => {
 	ids.forEach((id) => {
 		const hue = Math.floor(Math.random() * 65535) + 1
 		const sat = 200
-		const bri = 200
+		const bri = 100
 		const effect = 'none'
 		turnLightOnOrOff(id, true, hue, sat, bri, effect)
 	})
@@ -89,7 +89,7 @@ const setLightsToColor = (color) => {
 
 	ids.forEach((id) => {
 		const sat = 200
-		const bri = 200
+		const bri = 100
 		const effect = 'none'
 		turnLightOnOrOff(id, true, hueValue, sat, bri, effect)
 	})

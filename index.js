@@ -121,6 +121,7 @@ const getAppAccessToken = async () => {
 	}
 }
 
+// IIFE to set up the EventSub subscription
 ;(async () => {
 	try {
 		const callbackURL = isDev
