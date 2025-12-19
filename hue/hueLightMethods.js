@@ -87,7 +87,7 @@ const startChristmasMorphForLight = async (lightId, options = {}) => {
 		sat = 200,
 		bri = 100,
 		fadeSeconds = 2,
-		pauseSeconds = 8,
+		pauseSeconds = 2,
 	} = options
 
 	stopChristmasEffect(lightId)
