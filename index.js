@@ -152,7 +152,7 @@ app.post('/webhook', async (req, res) => {
 			case 'candle':
 				await setLightsToCandleEffect()
 				break
-			case 'Christmas':
+			case 'christmas':
 				await setLightsToChristmas()
 				break
 			case 'random':
