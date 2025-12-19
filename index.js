@@ -11,7 +11,7 @@ const {
 	setLightsToColor,
 	setLightsToMorph,
 	setLightsToCandleEffect,
-	startChristmasMorphForLight,
+	setLightsToChristmas,
 } = require('./hue/hueLightMethods')
 
 const getNgrokURL = require('./helpers/getNgrokURL')
@@ -153,7 +153,7 @@ app.post('/webhook', async (req, res) => {
 				await setLightsToCandleEffect()
 				break
 			case 'Christmas':
-				await startChristmasMorphForLight()
+				await setLightsToChristmas()
 				break
 			case 'random':
 				await setLightsToRandomColors()
