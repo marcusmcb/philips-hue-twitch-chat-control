@@ -5,10 +5,11 @@ const lightEffectControl = {}
 const christmasEffectTimers = {}
 
 const stopChristmasEffect = (lightId) => {
-	if (christmasEffectTimers[lightId]) {
-		clearInterval(christmasEffectTimers[lightId])
-		delete christmasEffectTimers[lightId]
-	}
+	const entry = christmasEffectTimers[lightId]
+	if (!entry) return
+	const timerId = typeof entry === 'number' ? entry : entry.timerId
+	if (timerId) clearInterval(timerId)
+	delete christmasEffectTimers[lightId]
 }
 
 const turnLightOnOrOff = async (lightId, on, hue, sat, bri, effect) => {
@@ -85,45 +86,23 @@ const startChristmasMorphForLight = async (lightId, options = {}) => {
 		greenHue = 25000,
 		sat = 200,
 		bri = 100,
-		fadeSeconds = 30,
-		tickMs = 1000,
+		fadeSeconds = 4,
+		pauseSeconds = 0,
 	} = options
 
 	stopChristmasEffect(lightId)
 	lightEffectControl[lightId] = false
 
-	const steps = Math.max(2, Math.round((fadeSeconds * 1000) / tickMs))
-	const forward = []
-	for (let i = 0; i <= steps; i++) {
-		forward.push(Math.round(redHue + ((greenHue - redHue) * i) / steps))
-	}
-	const backward = forward.slice(1, -1).reverse()
-	const hues = forward.concat(backward)
+	const transitiontime = Math.max(1, Math.round(fadeSeconds * 10)) // deciseconds
+	const periodMs = Math.max(250, Math.round((fadeSeconds + pauseSeconds) * 1000))
 
-	let index = 0
-	const transitiontime = Math.max(1, Math.round(tickMs / 100)) // deciseconds
-
-	// Set immediately so the first tick is not delayed.
-	try {
-		await sendHueAPIRequest(`lights/${lightId}/state`, 'PUT', {
-			on: true,
-			effect: 'none',
-			hue: hues[index],
-			sat,
-			bri,
-			transitiontime,
-		})
-	} catch (err) {
-		console.error(err)
-	}
-
-	christmasEffectTimers[lightId] = setInterval(async () => {
-		index = (index + 1) % hues.length
+	let isRed = true
+	const setTarget = async (targetHue) => {
 		try {
 			await sendHueAPIRequest(`lights/${lightId}/state`, 'PUT', {
 				on: true,
 				effect: 'none',
-				hue: hues[index],
+				hue: targetHue,
 				sat,
 				bri,
 				transitiontime,
@@ -131,7 +110,16 @@ const startChristmasMorphForLight = async (lightId, options = {}) => {
 		} catch (err) {
 			console.error(err)
 		}
-	}, tickMs)
+	}
+
+	// Kick off immediately, then alternate targets on a fixed cadence.
+	await setTarget(redHue)
+	const timerId = setInterval(async () => {
+		isRed = !isRed
+		await setTarget(isRed ? redHue : greenHue)
+	}, periodMs)
+
+	christmasEffectTimers[lightId] = { timerId }
 }
 
 const setLightsToChristmas = () => {
