@@ -2,11 +2,20 @@ const sendHueAPIRequest = require('../helpers/hueCloudAPI')
 
 const ids = [1] // Replace with your light IDs
 const lightEffectControl = {}
+const christmasEffectTimers = {}
+
+const stopChristmasEffect = (lightId) => {
+	if (christmasEffectTimers[lightId]) {
+		clearInterval(christmasEffectTimers[lightId])
+		delete christmasEffectTimers[lightId]
+	}
+}
 
 const turnLightOnOrOff = async (lightId, on, hue, sat, bri, effect) => {
 	console.log('EFFECT: ', effect)
 	console.log('HUE: ', hue)
 	lightEffectControl[lightId] = false
+	stopChristmasEffect(lightId)
 
 	try {
 		// turns off any color effects first
@@ -31,6 +40,7 @@ const turnLightMorphOn = async (lightId, on, hue, sat, bri, effect) => {
 	console.log('EFFECT: ', effect)
 	console.log('HUE: ', hue)
 	lightEffectControl[lightId] = false
+	stopChristmasEffect(lightId)
 
 	try {
 		return await sendHueAPIRequest(`lights/${lightId}/state`, 'PUT', {
@@ -66,6 +76,67 @@ const setLightsToRandomColors = () => {
 		const bri = 100
 		const effect = 'none'
 		turnLightOnOrOff(id, true, hue, sat, bri, effect)
+	})
+}
+
+const startChristmasMorphForLight = async (lightId, options = {}) => {
+	const {
+		redHue = 65000,
+		greenHue = 25000,
+		sat = 200,
+		bri = 100,
+		fadeSeconds = 30,
+		tickMs = 1000,
+	} = options
+
+	stopChristmasEffect(lightId)
+	lightEffectControl[lightId] = false
+
+	const steps = Math.max(2, Math.round((fadeSeconds * 1000) / tickMs))
+	const forward = []
+	for (let i = 0; i <= steps; i++) {
+		forward.push(Math.round(redHue + ((greenHue - redHue) * i) / steps))
+	}
+	const backward = forward.slice(1, -1).reverse()
+	const hues = forward.concat(backward)
+
+	let index = 0
+	const transitiontime = Math.max(1, Math.round(tickMs / 100)) // deciseconds
+
+	// Set immediately so the first tick is not delayed.
+	try {
+		await sendHueAPIRequest(`lights/${lightId}/state`, 'PUT', {
+			on: true,
+			effect: 'none',
+			hue: hues[index],
+			sat,
+			bri,
+			transitiontime,
+		})
+	} catch (err) {
+		console.error(err)
+	}
+
+	christmasEffectTimers[lightId] = setInterval(async () => {
+		index = (index + 1) % hues.length
+		try {
+			await sendHueAPIRequest(`lights/${lightId}/state`, 'PUT', {
+				on: true,
+				effect: 'none',
+				hue: hues[index],
+				sat,
+				bri,
+				transitiontime,
+			})
+		} catch (err) {
+			console.error(err)
+		}
+	}, tickMs)
+}
+
+const setLightsToChristmas = () => {
+	ids.forEach((id) => {
+		startChristmasMorphForLight(id)
 	})
 }
 
@@ -125,6 +196,7 @@ const setLightsToCandleEffect = () => {
 module.exports = {
 	setLightsToMorph,
 	setLightsToRandomColors,
+	setLightsToChristmas,
 	turnLightsOnOrOff,
 	setLightsToColor,
 	setLightsToCandleEffect,
